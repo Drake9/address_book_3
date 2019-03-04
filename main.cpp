@@ -7,9 +7,13 @@
 
 using namespace std;
 
+struct Para{
+int pierwsza=0, druga=0;
+};
+
 struct Adresat{
     int idAdresata = 0, idUzytkownika = 0;
-    string imie = "", nazwisko = "", adres = "", numerTelefonu = "", email = "";
+    string imie = "", nazwisko = "", numerTelefonu = "", email = "", adres = "";
 };
 
 struct Uzytkownik{
@@ -60,10 +64,11 @@ int wczytajUzytkownikowZPliku(vector<Uzytkownik> &uzytkownicy){
     return liczbaUzytkownikow;
 }
 
-int wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika){
-	int nrKontaktu = 0;
+Para wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika){
+    int liczbaKontaktow = 0;
 	Adresat kontakt;
-	string linia, temp;
+	Para wynik;
+	string linia;
 	fstream plik;
 	vector<string> podzielonaLinia;
 
@@ -72,7 +77,6 @@ int wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika){
         cout << endl <<"Nie udalo sie otworzyc pliku z kontaktami. Zostanie utworzony nowy plik.";
         Sleep(1500);
         plik.open("Adresaci.txt", ios::out | ios::app);
-        //exit(0);
     }
     else{
         while(getline(plik,linia)){
@@ -80,27 +84,30 @@ int wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika){
             podzielonaLinia.clear();
             podzielString(linia, '|', podzielonaLinia);
 
-            kontakt.idAdresata = atoi (podzielonaLinia[0].c_str());
-            kontakt.idUzytkownika = atoi(podzielonaLinia[1].c_str());
-            kontakt.imie = podzielonaLinia[2];
-            kontakt.nazwisko = podzielonaLinia[3];
-            kontakt.adres = podzielonaLinia[4];
-            kontakt.numerTelefonu = podzielonaLinia[5];
-            kontakt.email = podzielonaLinia[6];
+            if(atoi(podzielonaLinia[1].c_str()) == idUzytkownika){
 
-            adresy.push_back(kontakt);
-            nrKontaktu++;
+                kontakt.idAdresata = atoi (podzielonaLinia[0].c_str());
+                kontakt.idUzytkownika = atoi(podzielonaLinia[1].c_str());
+                kontakt.imie = podzielonaLinia[2];
+                kontakt.nazwisko = podzielonaLinia[3];
+                kontakt.numerTelefonu = podzielonaLinia[4];
+                kontakt.email = podzielonaLinia[5];
+                kontakt.adres = podzielonaLinia[6];
+
+                adresy.push_back(kontakt);
+
+            }
+            liczbaKontaktow++;
         }
     }
     plik.close();
-    return adresy.size();
+
+    wynik.pierwsza = liczbaKontaktow;
+    wynik.druga = kontakt.idAdresata;
+    return wynik;
 }
 
-int zaloguj(){
-    vector <Uzytkownik> uzytkownicy;
-
-	int liczbaUzytkownikow = wczytajUzytkownikowZPliku(uzytkownicy);
-
+int zaloguj(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow){
     string login, haslo;
 
     system("cls");
@@ -125,7 +132,7 @@ int zaloguj(){
                 cout << "Podane haslo jest nieprawidlowe.";
                 Sleep(2000);
             }
-            cout << "Podales 3 razy bledne haslo.";
+            cout << endl << "Podales 3 razy bledne haslo.";
             Sleep(1500);
             return 0;
         }
@@ -136,13 +143,10 @@ int zaloguj(){
     return 0;
 }
 
-void zarejestrujUzytkownika(){
+void zarejestrujUzytkownika(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow){
     fstream plik;
-    vector <Uzytkownik> uzytkownicy;
     string login, haslo;
     int noweID;
-
-	int liczbaUzytkownikow = wczytajUzytkownikowZPliku(uzytkownicy);
 
     if(liczbaUzytkownikow > 0)
         noweID = uzytkownicy[liczbaUzytkownikow-1].id + 1;
@@ -182,13 +186,41 @@ void zarejestrujUzytkownika(){
 
 }
 
-int dodajKontakt(int liczbaKontaktow, vector<Adresat> &adresy, int idUzytkownika){
+void zmienHaslo(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow, int idUzytkownika){
+    string haslo;
+    fstream plik;
+
+    system("cls");
+    cout << "Podaj nowe haslo: " << endl;
+    cin >> haslo;
+
+    for(int i=0; i<liczbaUzytkownikow; i++){
+        if(uzytkownicy[i].id == idUzytkownika){
+            uzytkownicy[i].haslo = haslo;
+            break;
+        }
+    }
+
+    plik.open("Uzytkownicy.txt", ios::trunc | ios::out);
+    if(plik.good()==false){
+        cout << "Nie udalo sie otworzyc pliku. Program zostanie zamkniety.";
+        exit(0);
+    }
+
+    for(int i=0; i<liczbaUzytkownikow; i++){
+         plik << uzytkownicy[i].id << "|" << uzytkownicy[i].login << "|" << uzytkownicy[i].haslo  << "|" << endl;
+    }
+
+    plik.close();
+
+    cout << "Haslo zostalo zmienione.";
+    Sleep(1500);
+}
+
+int dodajKontakt(int idOstatniegoKontaktu, vector<Adresat> &adresy, int idUzytkownika){
     Adresat kontakt;
     fstream plik;
-    if(liczbaKontaktow > 0)
-        kontakt.idAdresata = adresy[liczbaKontaktow-1].idAdresata + 1;
-    else
-        kontakt.idAdresata = 1;
+    kontakt.idAdresata = idOstatniegoKontaktu + 1;
 
     kontakt.idUzytkownika = idUzytkownika;
 
@@ -202,25 +234,25 @@ int dodajKontakt(int liczbaKontaktow, vector<Adresat> &adresy, int idUzytkownika
 
     adresy.push_back(kontakt);
 
-    plik.open("ksiazka_adresowa_nowy_format.txt", ios::out | ios::app);
+    plik.open("Adresaci.txt", ios::out | ios::app);
     if(plik.good())
-        plik << kontakt.idAdresata << "|" << kontakt.idUzytkownika << "|" << kontakt.imie << "|" << kontakt.nazwisko << "|" << kontakt.adres << "|" << kontakt.numerTelefonu << "|" << kontakt.email << "|" << endl;
+        plik << kontakt.idAdresata << "|" << kontakt.idUzytkownika << "|" << kontakt.imie << "|" << kontakt.nazwisko << "|" << kontakt.numerTelefonu << "|" << kontakt.email << "|" << kontakt.adres << "|" << endl;
     else{
         cout << "Nie udalo sie otworzyc pliku do zapisu. Program zostanie zamkniety.";
         exit(0);
     }
     plik.close();
 
-    return liczbaKontaktow+1;
+    return kontakt.idAdresata;
 }
 
 void wypiszKontakt(int numerKontaktu, vector<Adresat> &adresy){
 	cout << adresy[numerKontaktu].idAdresata  << endl;
 	cout << adresy[numerKontaktu].imie << " ";
 	cout << adresy[numerKontaktu].nazwisko << endl;
-	cout << adresy[numerKontaktu].adres << endl;
 	cout << adresy[numerKontaktu].numerTelefonu << endl;
-	cout << adresy[numerKontaktu].email << endl << endl;
+	cout << adresy[numerKontaktu].email << endl;
+	cout << adresy[numerKontaktu].adres << endl << endl;
 }
 
 void wyszukajKontaktPoImieniu(int liczbaKontaktow, vector<Adresat> &adresy){
@@ -272,10 +304,11 @@ void wyszukajKontaktPoNazwisku(int liczbaKontaktow, vector<Adresat> &adresy){
 	system("pause");
 }
 
-void wypiszWszystkieKontakty(int liczbaKontaktow, vector<Adresat> &adresy){
+void wypiszWszystkieKontakty(vector<Adresat> &adresy){
 	system("cls");
-	cout << "Liczba Kontaktow: " << liczbaKontaktow << endl << endl;
-	for(int i=0; i<liczbaKontaktow; i++){
+	int liczbaAdresatow = adresy.size();
+	cout << "Liczba Kontaktow: " << liczbaAdresatow << endl << endl;
+	for(int i=0; i<liczbaAdresatow; i++){
 		wypiszKontakt(i, adresy);
 	}
 	system("pause");
@@ -446,10 +479,15 @@ void wypiszMenuGlowne(){
 
 int main(){
     int idUzytkownika = 0;
+    int idOstatniegoAdresata = 0;
     int liczbaKontaktow = 0;
     char wybor = '0';
+    Para temp;
 
+    vector <Uzytkownik> uzytkownicy;
     vector <Adresat> adresaci;
+
+    int liczbaUzytkownikow = wczytajUzytkownikowZPliku(uzytkownicy);
 
     while(true){
         if(idUzytkownika == 0){
@@ -458,12 +496,14 @@ int main(){
 
             switch(wybor){
                 case '1':
-                    idUzytkownika = zaloguj();
-                    liczbaKontaktow = wczytajAdresatowZPliku(adresaci, idUzytkownika);
+                    idUzytkownika = zaloguj(uzytkownicy, liczbaUzytkownikow);
+                    temp = wczytajAdresatowZPliku(adresaci, idUzytkownika);
+                    liczbaKontaktow = temp.pierwsza;
+                    idOstatniegoAdresata = temp.druga;
                     break;
 
                 case '2':
-                    zarejestrujUzytkownika();
+                    zarejestrujUzytkownika(uzytkownicy, liczbaUzytkownikow);
                     break;
 
                 case '0':
@@ -481,7 +521,8 @@ int main(){
 
             switch(wybor){
 			case '1':
-				liczbaKontaktow = dodajKontakt(liczbaKontaktow, adresaci, idUzytkownika);
+				idOstatniegoAdresata = dodajKontakt(idOstatniegoAdresata, adresaci, idUzytkownika);
+				liczbaKontaktow++;
 				break;
 
 			case '2':
@@ -493,7 +534,7 @@ int main(){
 				break;
 
 			case '4':
-				wypiszWszystkieKontakty(liczbaKontaktow, adresaci);
+				wypiszWszystkieKontakty(adresaci);
 				break;
 
             case '5':
@@ -505,11 +546,12 @@ int main(){
 				break;
 
             case '8':
-				;//zmien haslo uzytkownika
+				zmienHaslo(uzytkownicy, liczbaUzytkownikow, idUzytkownika);
 				break;
 
 			case '0':
 				idUzytkownika = 0;
+				adresaci.clear();
                 system("cls");
                 cout << "Wylogowales sie.";
                 Sleep(1500);
