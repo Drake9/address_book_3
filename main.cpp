@@ -7,10 +7,6 @@
 
 using namespace std;
 
-struct Para{
-int pierwsza=0, druga=0;
-};
-
 struct Adresat{
     int idAdresata = 0, idUzytkownika = 0;
     string imie = "", nazwisko = "", numerTelefonu = "", email = "", adres = "";
@@ -64,10 +60,9 @@ int wczytajUzytkownikowZPliku(vector<Uzytkownik> &uzytkownicy){
     return liczbaUzytkownikow;
 }
 
-Para wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika){
-    int liczbaKontaktow = 0;
+int wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika, int &idOstatniegoAdresata){
+    int nrKontaktu = 0;
 	Adresat kontakt;
-	Para wynik;
 	string linia;
 	fstream plik;
 	vector<string> podzielonaLinia;
@@ -86,7 +81,7 @@ Para wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika){
 
             if(atoi(podzielonaLinia[1].c_str()) == idUzytkownika){
 
-                kontakt.idAdresata = atoi (podzielonaLinia[0].c_str());
+                kontakt.idAdresata = atoi(podzielonaLinia[0].c_str());
                 kontakt.idUzytkownika = atoi(podzielonaLinia[1].c_str());
                 kontakt.imie = podzielonaLinia[2];
                 kontakt.nazwisko = podzielonaLinia[3];
@@ -97,14 +92,13 @@ Para wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika){
                 adresy.push_back(kontakt);
 
             }
-            liczbaKontaktow++;
+            nrKontaktu++;
+            idOstatniegoAdresata = atoi(podzielonaLinia[0].c_str());
         }
     }
     plik.close();
 
-    wynik.pierwsza = liczbaKontaktow;
-    wynik.druga = kontakt.idAdresata;
-    return wynik;
+    return nrKontaktu;
 }
 
 int zaloguj(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow){
@@ -479,10 +473,9 @@ void wypiszMenuGlowne(){
 
 int main(){
     int idUzytkownika = 0;
-    int idOstatniegoAdresata = 0;
     int liczbaKontaktow = 0;
+    int idOstatniegoAdresata = 0;
     char wybor = '0';
-    Para temp;
 
     vector <Uzytkownik> uzytkownicy;
     vector <Adresat> adresaci;
@@ -497,9 +490,7 @@ int main(){
             switch(wybor){
                 case '1':
                     idUzytkownika = zaloguj(uzytkownicy, liczbaUzytkownikow);
-                    temp = wczytajAdresatowZPliku(adresaci, idUzytkownika);
-                    liczbaKontaktow = temp.pierwsza;
-                    idOstatniegoAdresata = temp.druga;
+                    liczbaKontaktow = wczytajAdresatowZPliku(adresaci, idUzytkownika, idOstatniegoAdresata);
                     break;
 
                 case '2':
