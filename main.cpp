@@ -320,22 +320,41 @@ int wyszukajKontaktPoID(int id, vector<Adresat> &adresy){
 }
 
 void usunAdresata(int &liczbaKontaktow, vector<Adresat> &adresy, int index, int wybraneID){
-    fstream plik;
+    fstream staryPlik, nowyPlik;
+    string linia;
+    vector <string> podzielonaLinia;
 
     adresy.erase(adresy.begin() + index);
     liczbaKontaktow--;
 
-    plik.open("ksiazka_adresowa_nowy_format.txt", ios::trunc | ios::out);
-    if(plik.good()==false){
+    staryPlik.open("Adresaci.txt", ios::in);
+    nowyPlik.open("Adresaci_tymczasowy.txt", ios::out | ios::app);
+    if(staryPlik.good()==false || nowyPlik.good()==false){
         cout << "Nie udalo sie otworzyc pliku. Program zostanie zamkniety.";
         exit(0);
     }
 
-    for(int i=0, length=adresy.size(); i<length; i++){
-         plik << adresy[i].idAdresata << "|" << adresy[i].idUzytkownika << "|" << adresy[i].imie << "|" << adresy[i].nazwisko << "|" << adresy[i].adres << "|" << adresy[i].numerTelefonu << "|" << adresy[i].email << "|" << endl;
+    while(getline(staryPlik, linia)){
+
+        podzielonaLinia.clear();
+        podzielString(linia, '|', podzielonaLinia);
+
+        if(atoi(podzielonaLinia[0].c_str()) != wybraneID){
+            nowyPlik << linia << endl;
+        }
     }
 
-    plik.close();
+    staryPlik.close();
+    if( remove( "Adresaci.txt" ) != 0 ){
+        cout << endl << "Nie powiodlo sie usuniecie pliku. Program zostanie zamkniety." << endl;
+        exit(0);
+    }
+
+    nowyPlik.close();
+    if( rename( "Adresaci_tymczasowy.txt", "Adresaci.txt" ) != 0 ){
+        cout << endl << "Nie powiodla sie zmiana nazwy pliku. Program zostanie zamkniety." << endl;
+        exit(0);
+    }
 }
 
 void przejdzDoUsuwaniaAdresata(int &liczbaKontaktow, vector<Adresat> &adresy){
@@ -344,6 +363,7 @@ void przejdzDoUsuwaniaAdresata(int &liczbaKontaktow, vector<Adresat> &adresy){
     int wybraneID = 0;
     system("cls");
     cout << "Wpisz id adresata, ktorego chcesz usunac: ";
+    cin.ignore();
     getline(cin, wybraneIDJakoString);
     wybraneID = atoi(wybraneIDJakoString.c_str());
     int index = wyszukajKontaktPoID(wybraneID, adresy);
@@ -360,28 +380,50 @@ void przejdzDoUsuwaniaAdresata(int &liczbaKontaktow, vector<Adresat> &adresy){
     }
     else{
         cout << "Nie znaleziono adresata o podanym id." << endl;
-        Sleep(3000);
+        Sleep(1500);
     }
 }
 
 void edytujAtrybutAdresata(int index, int wybraneID, vector<Adresat> &adresy, string &atrybut){
-    fstream plik;
+    fstream staryPlik, nowyPlik;
+    string linia;
+    vector <string> podzielonaLinia;
 
     system("cls");
     cout << "Podaj nowy atrybut adresata: " << endl;
     getline(cin, atrybut);
 
-    plik.open("ksiazka_adresowa_nowy_format.txt", ios::trunc | ios::out);
-    if(plik.good()==false){
+    staryPlik.open("Adresaci.txt", ios::in);
+    nowyPlik.open("Adresaci_tymczasowy.txt", ios::out | ios::app);
+    if(staryPlik.good()==false || nowyPlik.good()==false){
         cout << "Nie udalo sie otworzyc pliku. Program zostanie zamkniety.";
         exit(0);
     }
 
-    for(int i=0, length=adresy.size(); i<length; i++){
-         plik << adresy[i].idAdresata << "|" << adresy[i].idUzytkownika << "|" << adresy[i].imie << "|" << adresy[i].nazwisko << "|" << adresy[i].adres << "|" << adresy[i].numerTelefonu << "|" << adresy[i].email << "|" << endl;
+    while(getline(staryPlik, linia)){
+
+        podzielonaLinia.clear();
+        podzielString(linia, '|', podzielonaLinia);
+
+        if(atoi(podzielonaLinia[0].c_str()) == wybraneID){
+            nowyPlik << adresy[index].idAdresata << "|" << adresy[index].idUzytkownika << "|" << adresy[index].imie << "|" << adresy[index].nazwisko <<  "|" << adresy[index].numerTelefonu << "|" << adresy[index].email << "|" << adresy[index].adres << "|" << endl;
+        }
+        else{
+            nowyPlik << linia << endl;
+        }
     }
 
-    plik.close();
+    staryPlik.close();
+    if( remove( "Adresaci.txt" ) != 0 ){
+        cout << endl << "Nie powiodlo sie usuniecie pliku. Program zostanie zamkniety." << endl;
+        exit(0);
+    }
+
+    nowyPlik.close();
+    if( rename( "Adresaci_tymczasowy.txt", "Adresaci.txt" ) != 0 ){
+        cout << endl << "Nie powiodla sie zmiana nazwy pliku. Program zostanie zamkniety." << endl;
+        exit(0);
+    }
 }
 
 void edytujAdresata(int index, int id, vector<Adresat> &adresy){
@@ -391,10 +433,10 @@ void edytujAdresata(int index, int id, vector<Adresat> &adresy){
     cout << "Wybierz, ktory atrybut chcesz zmienic." << endl << endl;
     cout << "1 - imie" << endl;
     cout << "2 - nazwisko" << endl;
-    cout << "3 - adres" << endl;
-    cout << "4 - numer telefonu" << endl;
-    cout << "5 - email" << endl << endl;
-    cout << "6 - powrot do menu" << endl;
+    cout << "3 - numer telefonu" << endl;
+    cout << "4 - email" << endl;
+    cout << "5 - adres" << endl << endl;
+    cout << "0 - powrot do menu" << endl;
 
     wybor = getch();
 
@@ -408,18 +450,18 @@ void edytujAdresata(int index, int id, vector<Adresat> &adresy){
             break;
 
         case '3':
-            edytujAtrybutAdresata(index, id, adresy, adresy[index].adres);
-            break;
-
-        case '4':
             edytujAtrybutAdresata(index, id, adresy, adresy[index].numerTelefonu);
             break;
 
-        case '5':
+        case '4':
             edytujAtrybutAdresata(index, id, adresy, adresy[index].email);
             break;
 
-        case '6':
+        case '5':
+            edytujAtrybutAdresata(index, id, adresy, adresy[index].adres);
+            break;
+
+        case '0':
             ;
             break;
 
@@ -436,16 +478,17 @@ void przejdzdoEdycjiAdresata(int liczbaKontaktow, vector<Adresat> &adresy){
     system("cls");
     cout << "Wpisz id adresata, ktorego chcesz edytowac: ";
 
+    cin.ignore();
     getline(cin, wybraneIDJakoString);
     wybraneID = atoi(wybraneIDJakoString.c_str());
     int index = wyszukajKontaktPoID(wybraneID, adresy);
 
-    if(index >= 0 && index < adresy.size()){
+    if(index >= 0 && index < liczbaKontaktow){
         edytujAdresata(index, wybraneID, adresy);
     }
     else{
         cout << "Nie znaleziono adresata o podanym id." << endl;
-        Sleep(3000);
+        Sleep(1500);
     }
 }
 
