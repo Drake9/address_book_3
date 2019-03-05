@@ -101,12 +101,12 @@ int wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika, int &idOs
     return nrKontaktu;
 }
 
-int zaloguj(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow){
+int zaloguj(vector <Uzytkownik> &uzytkownicy, int &liczbaUzytkownikow){
     string login, haslo;
 
     system("cls");
     cout << "Podaj login: " << endl;
-    cin >> login;
+    getline(cin, login);
 
     int i=0;
     while(i < liczbaUzytkownikow){
@@ -115,7 +115,7 @@ int zaloguj(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow){
             for(int j=0; j<3; j++){
                 system("cls");
                 cout << "Podaj haslo. Pozostalo prob: " << 3-j << endl;
-                cin >> haslo;
+                getline(cin, haslo);
 
                 if(uzytkownicy[i].haslo == haslo){
 
@@ -137,25 +137,24 @@ int zaloguj(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow){
     return 0;
 }
 
-void zarejestrujUzytkownika(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow){
+void zarejestrujUzytkownika(vector <Uzytkownik> &uzytkownicy, int &liczbaUzytkownikow){
     fstream plik;
-    string login, haslo;
-    int noweID;
+    Uzytkownik nowyUzytkownik;
 
     if(liczbaUzytkownikow > 0)
-        noweID = uzytkownicy[liczbaUzytkownikow-1].id + 1;
+        nowyUzytkownik.id = uzytkownicy[liczbaUzytkownikow-1].id + 1;
     else
-        noweID = 1;
+        nowyUzytkownik.id = 1;
 
     system("cls");
     cout << "Podaj nazwe uzytkownika: " << endl;
-    cin >> login;
+    getline(cin, nowyUzytkownik.login);
 
     int i=0;
     while(i < liczbaUzytkownikow){
-        if(uzytkownicy[i].login == login){
+        if(uzytkownicy[i].login == nowyUzytkownik.login){
             cout << endl << "Istnieje juz uzytkownik o podanej nazwie. Podaj inna nazwe: " << endl;
-            cin >> login;
+            getline(cin, nowyUzytkownik.login);
             i=0;
         }
         else{
@@ -164,11 +163,14 @@ void zarejestrujUzytkownika(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkown
     }
 
     cout << "Podaj haslo uzytkownika: " << endl;
-    cin >> haslo;
+    getline(cin, nowyUzytkownik.haslo);
+
+    uzytkownicy.push_back(nowyUzytkownik);
+    liczbaUzytkownikow++;
 
     plik.open("Uzytkownicy.txt", ios::out | ios::app);
     if(plik.good())
-        plik << noweID << "|" << login << "|" << haslo << "|" << endl;
+        plik << nowyUzytkownik.id << "|" << nowyUzytkownik.login << "|" << nowyUzytkownik.haslo << "|" << endl;
     else{
         cout << "Nie udalo sie otworzyc pliku do zapisu. Program zostanie zamkniety.";
         exit(0);
@@ -186,7 +188,7 @@ void zmienHaslo(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow, int id
 
     system("cls");
     cout << "Podaj nowe haslo: " << endl;
-    cin >> haslo;
+    getline(cin, haslo);
 
     for(int i=0; i<liczbaUzytkownikow; i++){
         if(uzytkownicy[i].id == idUzytkownika){
@@ -255,7 +257,7 @@ void wyszukajKontaktPoImieniu(int liczbaKontaktow, vector<Adresat> &adresy){
 
 	system("cls");
 	cout << "Wpisz imie: ";
-	cin >> imie;
+	getline(cin, imie);
 	system("cls");
 
 	for(int i=0; i<liczbaKontaktow; i++){
@@ -280,7 +282,7 @@ void wyszukajKontaktPoNazwisku(int liczbaKontaktow, vector<Adresat> &adresy){
 
 	system("cls");
 	cout << "Wpisz nazwisko: ";
-	cin >> nazwisko;
+	getline(cin, nazwisko);
 	system("cls");
 
 	for(int i=0; i<liczbaKontaktow; i++){
@@ -309,23 +311,21 @@ void wypiszWszystkieKontakty(vector<Adresat> &adresy){
 }
 
 int wyszukajKontaktPoID(int id, vector<Adresat> &adresy){
-    int index = 0;
-    int length = adresy.size();
 
-    while(adresy[index].idAdresata != id && index < length){
-        index++;
+    for(int index=0, rozmiar=adresy.size(); index<rozmiar; index++){
+        if(adresy[index].idAdresata == id)
+            return index;
     }
 
-    return index;
+    return -2;
 }
 
-void usunAdresata(int &liczbaKontaktow, vector<Adresat> &adresy, int index, int wybraneID){
+void usunAdresata(vector<Adresat> &adresy, int index, int wybraneID, int &idOstatniegoAdresata){
     fstream staryPlik, nowyPlik;
     string linia;
     vector <string> podzielonaLinia;
 
     adresy.erase(adresy.begin() + index);
-    liczbaKontaktow--;
 
     staryPlik.open("Adresaci.txt", ios::in);
     nowyPlik.open("Adresaci_tymczasowy.txt", ios::out | ios::app);
@@ -341,6 +341,7 @@ void usunAdresata(int &liczbaKontaktow, vector<Adresat> &adresy, int index, int 
 
         if(atoi(podzielonaLinia[0].c_str()) != wybraneID){
             nowyPlik << linia << endl;
+            idOstatniegoAdresata = atoi(podzielonaLinia[0].c_str());
         }
     }
 
@@ -357,25 +358,25 @@ void usunAdresata(int &liczbaKontaktow, vector<Adresat> &adresy, int index, int 
     }
 }
 
-void przejdzDoUsuwaniaAdresata(int &liczbaKontaktow, vector<Adresat> &adresy){
+void przejdzDoUsuwaniaAdresata(int &idOstatniegoAdresata, vector<Adresat> &adresy){
     string wybraneIDJakoString = "";
     char wybor = '0';
     int wybraneID = 0;
     system("cls");
     cout << "Wpisz id adresata, ktorego chcesz usunac: ";
-    cin.ignore();
+
     getline(cin, wybraneIDJakoString);
     wybraneID = atoi(wybraneIDJakoString.c_str());
     int index = wyszukajKontaktPoID(wybraneID, adresy);
 
-    if(index >= 0 && index < adresy.size()){
+    if(index >= 0 && index < idOstatniegoAdresata){
         cout << endl << "Czy na pewno chcesz usunac adresata: " << adresy[index].imie << " " << adresy[index].nazwisko << " ?" << endl << endl;
         cout << "Aby usunac wybranego adresata, nacisnij: t" << endl << endl;
         cout << "Aby powrocic do menu, nacisnij dowolny inny klawisz." << endl;
 
         wybor = getch();
         if(wybor == 't' || wybor == 'T'){
-            usunAdresata(liczbaKontaktow, adresy, index, wybraneID);
+            usunAdresata(adresy, index, wybraneID, idOstatniegoAdresata);
         }
     }
     else{
@@ -471,19 +472,18 @@ void edytujAdresata(int index, int id, vector<Adresat> &adresy){
     }
 }
 
-void przejdzdoEdycjiAdresata(int liczbaKontaktow, vector<Adresat> &adresy){
+void przejdzdoEdycjiAdresata(int idOstatniegoAdresata, vector<Adresat> &adresy){
     string wybraneIDJakoString = "";
     int wybraneID = 0;
 
     system("cls");
     cout << "Wpisz id adresata, ktorego chcesz edytowac: ";
 
-    cin.ignore();
     getline(cin, wybraneIDJakoString);
     wybraneID = atoi(wybraneIDJakoString.c_str());
     int index = wyszukajKontaktPoID(wybraneID, adresy);
 
-    if(index >= 0 && index < liczbaKontaktow){
+    if(index >= 0 && index < idOstatniegoAdresata){
         edytujAdresata(index, wybraneID, adresy);
     }
     else{
@@ -572,11 +572,11 @@ int main(){
 				break;
 
             case '5':
-				przejdzDoUsuwaniaAdresata(liczbaKontaktow, adresaci);
+				przejdzDoUsuwaniaAdresata(idOstatniegoAdresata, adresaci);
 				break;
 
             case '6':
-				przejdzdoEdycjiAdresata(liczbaKontaktow, adresaci);
+				przejdzdoEdycjiAdresata(idOstatniegoAdresata, adresaci);
 				break;
 
             case '8':
