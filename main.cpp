@@ -251,16 +251,17 @@ void wypiszKontakt(int numerKontaktu, vector<Adresat> &adresy){
 	cout << adresy[numerKontaktu].adres << endl << endl;
 }
 
-void wyszukajKontaktPoImieniu(int liczbaKontaktow, vector<Adresat> &adresy){
+void wyszukajKontaktPoImieniu(vector<Adresat> &adresy){
 	int sprawdzono = 0;
-	string imie;
+	string imie = "";
+	int rozmiar = adresy.size();
 
 	system("cls");
 	cout << "Wpisz imie: ";
 	getline(cin, imie);
 	system("cls");
 
-	for(int i=0; i<liczbaKontaktow; i++){
+	for(int i=0; i<rozmiar; i++){
 		if(adresy[i].imie==imie){
 			wypiszKontakt(i, adresy);
 		}
@@ -269,23 +270,24 @@ void wyszukajKontaktPoImieniu(int liczbaKontaktow, vector<Adresat> &adresy){
 		}
 	}
 
-	if(sprawdzono==liczbaKontaktow){
+	if(sprawdzono==rozmiar){
 		cout << "Nie znaleziono pasujacych wynikow." << endl << endl;
 	}
 
 	system("pause");
 }
 
-void wyszukajKontaktPoNazwisku(int liczbaKontaktow, vector<Adresat> &adresy){
+void wyszukajKontaktPoNazwisku(vector<Adresat> &adresy){
 	int sprawdzono = 0;
-	string nazwisko;
+	string nazwisko = "";
+	int rozmiar=adresy.size();
 
 	system("cls");
 	cout << "Wpisz nazwisko: ";
 	getline(cin, nazwisko);
 	system("cls");
 
-	for(int i=0; i<liczbaKontaktow; i++){
+	for(int i=0; i<rozmiar; i++){
 		if(adresy[i].nazwisko==nazwisko){
 			wypiszKontakt(i, adresy);
 		}
@@ -293,7 +295,7 @@ void wyszukajKontaktPoNazwisku(int liczbaKontaktow, vector<Adresat> &adresy){
 			sprawdzono++;
 		}
 	}
-	if(sprawdzono==liczbaKontaktow){
+	if(sprawdzono==rozmiar){
 		cout << "Nie znaleziono pasujacych wynikow." << endl << endl;
 	}
 
@@ -560,11 +562,11 @@ int main(){
 				break;
 
 			case '2':
-				wyszukajKontaktPoImieniu(liczbaKontaktow, adresaci);
+				wyszukajKontaktPoImieniu(adresaci);
 				break;
 
             case '3':
-				wyszukajKontaktPoNazwisku(liczbaKontaktow, adresaci);
+				wyszukajKontaktPoNazwisku(adresaci);
 				break;
 
 			case '4':
