@@ -7,14 +7,18 @@
 
 using namespace std;
 
+const string nazwaPlikuZUzytkownikami = "Uzytkownicy.txt";
+const string nazwaPlikuZAdresatami = "Adresaci.txt";
+const string nazwaTymczasowegoPlikuZAdresatami = "Adresaci_tymczasowy.txt";
+
 struct Adresat{
     int idAdresata = 0, idUzytkownika = 0;
     string imie = "", nazwisko = "", numerTelefonu = "", email = "", adres = "";
 };
 
 struct Uzytkownik{
-    int id;
-    string login, haslo;
+    int id = 0;
+    string login = "", haslo = "";
 };
 
 void podzielString(string linia, char znak, vector<string> &wyrazy){
@@ -34,11 +38,11 @@ int wczytajUzytkownikowZPliku(vector<Uzytkownik> &uzytkownicy){
 	fstream plik;
 	vector<string> podzielonaLinia;
 
-	plik.open("Uzytkownicy.txt", ios::in);
+	plik.open(nazwaPlikuZUzytkownikami.c_str(), ios::in);
     if(plik.good()==false){
         cout << "Nie udalo sie otworzyc pliku Uzytkownicy.txt. Zostanie utworzony nowy plik.";
         Sleep(1500);
-        plik.open("Uzytkownicy.txt", ios::out | ios::app);
+        plik.open(nazwaPlikuZUzytkownikami.c_str(), ios::out | ios::app);
         //exit(0);
     }
     else{
@@ -67,11 +71,11 @@ int wczytajAdresatowZPliku(vector<Adresat> &adresy, int idUzytkownika, int &idOs
 	fstream plik;
 	vector<string> podzielonaLinia;
 
-    plik.open("Adresaci.txt", ios::in); // wczytujemy plik
+    plik.open(nazwaPlikuZAdresatami.c_str(), ios::in); // wczytujemy plik
     if(plik.good()==false){
         cout << endl <<"Nie udalo sie otworzyc pliku z kontaktami. Zostanie utworzony nowy plik.";
         Sleep(1500);
-        plik.open("Adresaci.txt", ios::out | ios::app);
+        plik.open(nazwaPlikuZAdresatami.c_str(), ios::out | ios::app);
     }
     else{
         while(getline(plik,linia)){
@@ -147,8 +151,11 @@ void zarejestrujUzytkownika(vector <Uzytkownik> &uzytkownicy, int &liczbaUzytkow
         nowyUzytkownik.id = 1;
 
     system("cls");
-    cout << "Podaj nazwe uzytkownika: " << endl;
-    getline(cin, nowyUzytkownik.login);
+
+    do{
+        cout << "Podaj niepusta nazwe uzytkownika: " << endl;
+        getline(cin, nowyUzytkownik.login);
+    }while(nowyUzytkownik.login == "");
 
     int i=0;
     while(i < liczbaUzytkownikow){
@@ -168,7 +175,7 @@ void zarejestrujUzytkownika(vector <Uzytkownik> &uzytkownicy, int &liczbaUzytkow
     uzytkownicy.push_back(nowyUzytkownik);
     liczbaUzytkownikow++;
 
-    plik.open("Uzytkownicy.txt", ios::out | ios::app);
+    plik.open(nazwaPlikuZUzytkownikami.c_str(), ios::out | ios::app);
     if(plik.good())
         plik << nowyUzytkownik.id << "|" << nowyUzytkownik.login << "|" << nowyUzytkownik.haslo << "|" << endl;
     else{
@@ -197,7 +204,7 @@ void zmienHaslo(vector <Uzytkownik> &uzytkownicy, int liczbaUzytkownikow, int id
         }
     }
 
-    plik.open("Uzytkownicy.txt", ios::trunc | ios::out);
+    plik.open(nazwaPlikuZUzytkownikami.c_str(), ios::trunc | ios::out);
     if(plik.good()==false){
         cout << "Nie udalo sie otworzyc pliku. Program zostanie zamkniety.";
         exit(0);
@@ -222,15 +229,22 @@ int dodajKontakt(int idOstatniegoKontaktu, vector<Adresat> &adresy, int idUzytko
 
     system("cls");
     cin.sync();
-    cout << "Podaj imie: ";           getline(cin, kontakt.imie);
-    cout << "Podaj nazwisko: ";       getline(cin, kontakt.nazwisko);
+
+    do{
+        cout << "Podaj imie : ";            getline(cin, kontakt.imie);
+    }while(kontakt.imie == "");
+
+    do{
+        cout << "Podaj nazwisko : ";        getline(cin, kontakt.nazwisko);
+    }while(kontakt.nazwisko == "");
+
     cout << "Podaj adres: ";          getline(cin, kontakt.adres);
     cout << "Podaj nr telefonu: ";    getline(cin, kontakt.numerTelefonu);
     cout << "Podaj adres e-mail: ";   getline(cin, kontakt.email);
 
     adresy.push_back(kontakt);
 
-    plik.open("Adresaci.txt", ios::out | ios::app);
+    plik.open(nazwaPlikuZAdresatami.c_str(), ios::out | ios::app);
     if(plik.good())
         plik << kontakt.idAdresata << "|" << kontakt.idUzytkownika << "|" << kontakt.imie << "|" << kontakt.nazwisko << "|" << kontakt.numerTelefonu << "|" << kontakt.email << "|" << kontakt.adres << "|" << endl;
     else{
@@ -329,8 +343,8 @@ void usunAdresata(vector<Adresat> &adresy, int index, int wybraneID, int &idOsta
 
     adresy.erase(adresy.begin() + index);
 
-    staryPlik.open("Adresaci.txt", ios::in);
-    nowyPlik.open("Adresaci_tymczasowy.txt", ios::out | ios::app);
+    staryPlik.open(nazwaPlikuZAdresatami.c_str(), ios::in);
+    nowyPlik.open(nazwaTymczasowegoPlikuZAdresatami.c_str(), ios::out | ios::app);
     if(staryPlik.good()==false || nowyPlik.good()==false){
         cout << "Nie udalo sie otworzyc pliku. Program zostanie zamkniety.";
         exit(0);
@@ -348,13 +362,13 @@ void usunAdresata(vector<Adresat> &adresy, int index, int wybraneID, int &idOsta
     }
 
     staryPlik.close();
-    if( remove( "Adresaci.txt" ) != 0 ){
+    if( remove( nazwaPlikuZAdresatami.c_str() ) != 0 ){
         cout << endl << "Nie powiodlo sie usuniecie pliku. Program zostanie zamkniety." << endl;
         exit(0);
     }
 
     nowyPlik.close();
-    if( rename( "Adresaci_tymczasowy.txt", "Adresaci.txt" ) != 0 ){
+    if( rename( nazwaTymczasowegoPlikuZAdresatami.c_str(), nazwaPlikuZAdresatami.c_str() ) != 0 ){
         cout << endl << "Nie powiodla sie zmiana nazwy pliku. Program zostanie zamkniety." << endl;
         exit(0);
     }
@@ -396,8 +410,8 @@ void edytujAtrybutAdresata(int index, int wybraneID, vector<Adresat> &adresy, st
     cout << "Podaj nowy atrybut adresata: " << endl;
     getline(cin, atrybut);
 
-    staryPlik.open("Adresaci.txt", ios::in);
-    nowyPlik.open("Adresaci_tymczasowy.txt", ios::out | ios::app);
+    staryPlik.open(nazwaPlikuZAdresatami.c_str(), ios::in);
+    nowyPlik.open(nazwaTymczasowegoPlikuZAdresatami.c_str(), ios::out | ios::app);
     if(staryPlik.good()==false || nowyPlik.good()==false){
         cout << "Nie udalo sie otworzyc pliku. Program zostanie zamkniety.";
         exit(0);
@@ -417,13 +431,13 @@ void edytujAtrybutAdresata(int index, int wybraneID, vector<Adresat> &adresy, st
     }
 
     staryPlik.close();
-    if( remove( "Adresaci.txt" ) != 0 ){
+    if( remove( nazwaPlikuZAdresatami.c_str() ) != 0 ){
         cout << endl << "Nie powiodlo sie usuniecie pliku. Program zostanie zamkniety." << endl;
         exit(0);
     }
 
     nowyPlik.close();
-    if( rename( "Adresaci_tymczasowy.txt", "Adresaci.txt" ) != 0 ){
+    if( rename( nazwaTymczasowegoPlikuZAdresatami.c_str(), nazwaPlikuZAdresatami.c_str() ) != 0 ){
         cout << endl << "Nie powiodla sie zmiana nazwy pliku. Program zostanie zamkniety." << endl;
         exit(0);
     }
